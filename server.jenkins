@@ -36,23 +36,7 @@ pipeline {
             }
             steps {
                 script {
-                    buildDocker.inside {
-                        sh 'echo Testing passed!'
-                    }
-                }
-            }
-        }
-
-        stage('Push image') {
-            when {
-                expression {
-                    params.BUILDPROJECT == 'OKE' 
-                    params.RUNBUILD
-                }
-            }
-            steps {
-                script {
-                    buildDocker.push("${env.GIT_BRANCH}")
+                    sh 'echo Testing passed!'
                 }
             }
         }
@@ -67,6 +51,7 @@ pipeline {
             steps {
                 echo 'Pull image frontend - process.'
                 script {
+                    continueOnError: false, failOnError: true,
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
@@ -132,7 +117,7 @@ pipeline {
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: 'pdocker-compose up -d',
+                                        execCommand: 'docker-compose down',
                                         execTimeout: 90000,
                                     )
                                 ]

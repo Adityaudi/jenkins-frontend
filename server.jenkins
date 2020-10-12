@@ -18,7 +18,15 @@ pipeline {
                 }
             }
         }
-        
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    buildDocker = docker.build("adityaudi/app-frontend:v2.0.0.1")
+                }
+            }
+        }
+
         stage('Run Testing frontend') {
             steps {
                echo "Testing passed!"

@@ -35,8 +35,10 @@ pipeline {
                 }
             }
             steps {
-                buildDocker.inside {
+                script {
+                    buildDocker.inside {
                         sh 'echo Testing passed!'
+                    }
                 }
             }
         }
@@ -49,7 +51,9 @@ pipeline {
                 }
             }
             steps {
-                 buildDocker.push("${env.GIT_BRANCH}")
+                script {
+                    buildDocker.push("${env.GIT_BRANCH}")
+                }
             }
         }
 

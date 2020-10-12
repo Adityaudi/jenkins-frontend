@@ -1,0 +1,65 @@
+version: "3.3"
+
+services: 
+    frontend: 
+        container_name: frontend
+        image: adityaudi/app-frontend:v1.0.0.1
+        ports: 
+            - "8080:80"
+        networks:
+            - networkid
+        environment:
+            - VUE_APP_URL=http://nodejs:5050/product
+            - VUE_APP_URL_HISTORY=http://nodejs:5050/history
+            - VUE_APP_URL_USERS=http://nodejs:5050/users
+            - VUE_APP_URL_AUTH=http://nodejs:5050/auth
+
+    nodejs:
+        container_name: nodejs
+        image: adityaudi/app-backend:v1.0.0.2
+        ports:
+            - "5050:4040"
+        networks:
+            - networkid
+        depends_on:
+            - database
+            - cache
+        environment:
+            - PORT=5050
+
+            - DB_NAME=coffeeshopdb
+            - DB_USER=adityaudi
+            - DB_PASS=22
+            - DB_HOST=database
+
+            - SECRET_KEY=adityaudi
+
+            - REDIS_PORT=6379
+            - REDIS_HOST=cache
+
+    database:
+        container_name: postgresql
+        image: postgres:latest
+        ports:
+            - "5432:5432"
+        networks:
+            - networkid
+        volumes:
+            - ./pgdata:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: adityaudi
+            POSTGRES_PASSWORD: 22
+            POSTGRES_DB: coffeeshopdb
+
+    cache:
+        container_name: redis
+        image: redis:alpine
+        ports:
+            - "6379:6379"
+        networks:
+            - networkid
+        volumes:
+            - ./redisdata:/data
+
+networks:
+    networkid:

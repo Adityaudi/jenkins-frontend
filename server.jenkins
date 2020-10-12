@@ -1,0 +1,115 @@
+def buildDocker
+
+pipeline {
+    agent any
+    
+    parameters { 
+        choice(name: 'BUILD PROJECT', choices: ['NOT OKE!', 'OKE!'])
+        choice(name: 'DEVLOPMENT PROJECT', choices: ['NOT OKE!', 'OKE'])
+        text(name: 'Description', defaultValue: '')
+        booleanParam(name: 'RUNBUILD', defaultValue: false, description: 'YES,IM AGREE!')
+    }
+
+    stages{
+        stage('Build project') {
+            steps {
+                nodejs('nodejs12') {
+                    sh 'yarn install'
+                }
+            }
+        }
+        
+        stage('Run Testing frontend') {
+            steps {
+               echo "Testing passed!"
+            }
+        }
+
+        stage("Docker Build Testing - frontend"){
+            when {
+                expression {
+                    params.BUILDPROJECT == 'OKE' 
+                    params.RUNBUILD
+                }
+            }
+            steps {
+                echo 'Pull image frontend - process.'
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'Build testing CI',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: 'docker pull adityaudi/app-frontend:v1.0.0.1; docker pull adityaudi/sup-frontend:v1.0.0.1;',
+                                        execTimeout: 120000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+                echo 'Pull image frontend - success.'
+            }
+        }
+
+        stage('Run Testing backend') {
+            steps {
+               echo "Testing passed!"
+            }
+        }
+
+        stage("Docker Build Testing - backend"){
+            when {
+                expression {
+                    params.BUILDPROJECT == 'OKE' 
+                    params.RUNBUILD
+                }
+            }
+            steps {
+                echo 'Pull image backend - process.'
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'Build testing CI',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: 'docker pull adityaudi/app-backend:v1.0.0.2;',
+                                        execTimeout: 120000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+                echo 'Pull image frontend - success.'
+            }
+        }
+
+        stage("Docker compose build"){
+            steps {
+                echo 'Docker compose - running.'
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'Build testing CI',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: 'pdocker-compose up -d',
+                                        execTimeout: 90000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+                echo 'Docker compose - Success.'
+            }
+        }
+    }    
+}

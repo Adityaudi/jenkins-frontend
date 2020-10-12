@@ -106,10 +106,15 @@
                             this.datalogin = []
                             this.token = result.data
                             this.$bvToast.show('InfoToken')
-
                         }).catch((err) => {
+                            if(err == 'Error: Network Error'){
+                                this.$router.replace({
+                                name: "erorr"
+                                })
+                            }else{
                             this.datalogin.password = ''
                             alert('username or password invalid', err)
+                            }
                         });
                 } else {
                     alert('A username and password must be present')

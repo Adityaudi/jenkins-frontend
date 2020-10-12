@@ -148,7 +148,7 @@
                 </div>
               </template>
               <div class="body-info">
-                <h5>hello welcome to coffee shop.</h5>
+                <h5>Hello welcome to coffee shop.</h5>
                 <p>your information token access:</p>
                 <div class="hideToken">
                   <h5> {{ tokenInfo }} </h5>
@@ -644,6 +644,9 @@
     width: 100px;
     height: 100px;
   }
+  .body-info img:hover {
+    transform: scale(1.1); 
+  }  
 
   #cart {
     width: 21.7em;

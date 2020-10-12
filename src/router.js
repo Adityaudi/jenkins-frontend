@@ -3,6 +3,7 @@ import VueRouter from "vue-router"
 import home  from  './views/home-product/home' 
 import history from './views/history/history'
 import login from './views/login'
+import error from './views/erorr'
 
 Vue.use(VueRouter)
 
@@ -14,6 +15,11 @@ const mainRouter = new VueRouter({
             path: "/",
             name: 'login',
             component: login
+        },
+        {
+            path: "/",
+            name: 'erorr',
+            component: error
         },
         {
             path: "/history",

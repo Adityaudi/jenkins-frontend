@@ -5,6 +5,10 @@ def REPO = 'adityaudi/app-frontend'
 
 pipeline {
     agent any
+
+    options {
+       skipDefaultCheckout true
+    }
     
     parameters {
         choice(name: 'DEPLOY_PRODUCTION', choices: ['YES', 'CANCEL'])

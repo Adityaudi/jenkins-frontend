@@ -33,7 +33,6 @@ pipeline {
                     if (BRANCH_NAME == BRANCH_STAGE) {
                         buildDocker  = docker.build("${REPO}:stage}", "-f Dockerfile ./") 
                     }
-                    sh ('docker rmi $(docker images --filter "dangling=true" -q --no-trunc)')
                 }
             }
         }

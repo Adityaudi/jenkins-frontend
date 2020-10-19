@@ -1,13 +1,15 @@
 def buildDocker
+def BRANCH_STAGE = 'master'
+def REPO = 'adityaudi/app-frontend'
+
 
 pipeline {
     agent any
     
-    parameters { 
-        choice(name: 'BUILD PROJECT', choices: ['NOT OKE!', 'OKE!'])
-        choice(name: 'DEVLOPMENT PROJECT', choices: ['NOT OKE!', 'OKE'])
+    parameters {
+        choice(name: 'DEPLOY_PRODUCTION', choices: ['YES', 'CANCEL'])
         text(name: 'Description', defaultValue: '')
-        booleanParam(name: 'RUNBUILD', defaultValue: false, description: 'YES,IM AGREE!')
+        booleanParam(name: 'RUN_NOW', defaultValue: false)
     }
 
     stages{
@@ -18,22 +20,25 @@ pipeline {
                 }
             }
         }
+        
+        stage('Run Testing') {
+            steps {
+                echo 'passed'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    buildDocker = docker.build("adityaudi/app-frontend:v2.0.0.1")
+                script {    
+                    if (BRANCH_NAME == BRANCH_STAGE) {
+                        buildDocker  = docker.build("${REPO}:stage}", "-f Dockerfile ./") 
+                    }
+                    sh ('docker rmi $(docker images --filter "dangling=true" -q --no-trunc)')
                 }
             }
         }
 
         stage('Run Testing frontend') {
-            when {
-                expression {
-                    params.BUILDPROJECT == 'OKE' 
-                    params.RUNBUILD
-                }
-            }
             steps {
                 script {
                     sh 'echo Testing passed!'
@@ -42,12 +47,6 @@ pipeline {
         }
 
         stage("Docker Build Testing - frontend"){
-            when {
-                expression {
-                    params.BUILDPROJECT == 'OKE' 
-                    params.RUNBUILD
-                }
-            }
             steps {
                 echo 'Pull image frontend - process.'
                 script {
@@ -59,7 +58,7 @@ pipeline {
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: 'docker pull adityaudi/app-frontend:v2.0.0.1; docker pull adityaudi/sup-frontend:v2.0.0.1;',
+                                        execCommand: "docker pull ${REPO}:stage;",
                                         execTimeout: 120000,
                                     )
                                 ]
@@ -70,31 +69,20 @@ pipeline {
                 echo 'Pull image frontend - success.'
             }
         }
-
-        stage('Run Testing backend') {
+        
+        stage("Connecttion on ansible"){
             steps {
-               echo "Testing passed!"
-            }
-        }
-
-        stage("Docker Build Testing - backend"){
-            when {
-                expression {
-                    params.BUILDPROJECT == 'OKE' 
-                    params.RUNBUILD
-                }
-            }
-            steps {
-                echo 'Pull image backend - process.'
+                echo 'Connection - process.'
                 script {
+                    continueOnError: false, failOnError: true,
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: 'Build testing CI',
+                                configName: 'ansible',
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: 'docker pull adityaudi/app-backend:v1.0.0.2;',
+                                        execCommand: "cd /etc/ansible && ansible-playbook -i hosts setup-stage.yml;",
                                         execTimeout: 120000,
                                     )
                                 ]
@@ -102,10 +90,10 @@ pipeline {
                         ]
                     )
                 }
-                echo 'Pull image frontend - success.'
+                echo 'success.'
             }
         }
-
+        
         stage("Docker compose build"){
             steps {
                 echo 'Docker compose - running.'
@@ -113,12 +101,12 @@ pipeline {
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: 'Build testing CI',
+                                configName: 'ssh staging',
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: 'docker-compose down',
-                                        execTimeout: 90000,
+                                        execCommand: 'docker-compose up -d; docker ps',
+                                        execTimeout: 120000,
                                     )
                                 ]
                             )

@@ -52,7 +52,7 @@ pipeline {
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: 'Build testing CI',
+                                configName: 'ssh staging',
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
